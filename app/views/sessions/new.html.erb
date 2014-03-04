@@ -3,16 +3,11 @@
 
 <div class="row">
   <div class="span6 offset3">
-#cant get the form_tag to work but this is my understanding of how it should look
-#can you please explain what I need to do to get the test to pass again?
     <%= form_tag sessions_path do %>
-
       <%= label_tag :email %>
-      <%= text_field_tag :email, params[:email] %>
-
+      <%= text_field_tag :email %>
       <%= label_tag :password %>
       <%= password_field_tag :password %>
-
       <%= submit_tag "Sign in", class: "btn btn-large btn-primary" %>
     <% end %>
 
