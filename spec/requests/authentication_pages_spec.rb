@@ -9,6 +9,12 @@ describe "Authentication" do
 
     it { should have_content('Sign in') }
     it { should have_title('Sign in') }
+
+    it { should_not have_link('Users') }
+    it { should_not have_link('Profile') }
+    it { should_not have_link('Settings') }
+    it { should_not have_link('Sign out', href: signout_path) }
+    it { should have_link('Sign in', href: signin_path) }
   end
 
   describe "signin" do
@@ -18,11 +24,11 @@ describe "Authentication" do
       before { click_button "Sign in" }
 
       it { should have_title('Sign in') }
-      it { should have_selector('div.alert.alert-error') }
+      it { should have_error_message('Invalid') }
 
       describe "after visiting another page" do
         before { click_link "Home" }
-        it { should_not have_selector('div.alert.alert-error') }
+        it { should_not have_error_message('Invalid')}
       end
     end
 
@@ -37,11 +43,32 @@ describe "Authentication" do
       it { should have_link('Sign out',    href: signout_path) }
       it { should_not have_link('Sign in', href: signin_path) }
 
-      describe "followed by signout" do
-        before { click_link "Sign out" }
-        it { should have_link('Sign in') }
-      end
+      #describe "followed by signout" do
+        #before { click_link "Sign out" }
+        #it { should have_link('Sign in') }
+      #end
     end
+
+    describe "for signed-in users" do
+      let(:user) { FactoryGirl.create(:user) }
+      before { sign_in user, no_capybara: true }
+
+      describe "using a 'new' action" do
+        before { get new_user_path }      
+        specify { response.should redirect_to(root_path) }
+      end
+
+      describe "using a 'create' action" do
+        before do
+          @user_new = {name: "Example User", 
+                       email: "user@example.com", 
+                       password: "foobar", 
+                       password_confirmation: "foobar"} 
+          post users_path, user: @user_new 
+        end
+        specify { response.should redirect_to(root_path) }
+      end
+    end 
   end
 
   describe "authorization" do
@@ -52,9 +79,11 @@ describe "Authentication" do
       describe "when attempting to visit a protected page" do
         before do
           visit edit_user_path(user)
-          fill_in "Email",    with: user.email
-          fill_in "Password", with: user.password
-          click_button "Sign in"
+	  sign_in user
+	  # sign_in replaced:
+          #fill_in "Email",    with: user.email
+          #fill_in "Password", with: user.password
+          #click_button "Sign in"
         end
 
         describe "after signing in" do
@@ -114,6 +143,3 @@ describe "Authentication" do
     end
   end
 end
-
-
-
